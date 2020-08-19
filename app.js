@@ -2,10 +2,12 @@ const express = require('express')
 //const bodyPerser = require('body-parser')
 const { graphqlHTTP } = require('express-graphql')
 const { buildSchema } = require('graphql')
-const mongoose = require("mongoose")
+const mongoose = require('mongoose')
+const bcrypt = require('bcryptjs')
 
 
 const Event = require('./models/event')
+const User = require('./models/user')
 
 
 // Construct a schema, using GraphQL schema language
@@ -18,11 +20,22 @@ var schema = buildSchema(`
     date: String!
   }
 
+  type User {
+    _id: ID!
+    email: String!
+    password: String
+  }
+
   input EventInput {
     title: String!
     description: String!
     price: Float!
     date: String!
+  }
+
+  input UserInput {
+    email: String!
+    password: String!
   }
 
   type Query {
@@ -31,6 +44,7 @@ var schema = buildSchema(`
   
   type Mutation {
     createEvent(eventInput: EventInput): Event
+    createUser(userInput: UserInput): User
   }
 `);
 
@@ -64,6 +78,30 @@ var root = {
         throw err;
       });
   },
+  createUser: (args) => {
+    return User.findOne({ email: args.userInput.email })
+      .then((user) => {
+        if (user) {
+          throw new Error("User axist already");
+        }
+        return bcrypt.hash(args.userInput.password, 12);
+      })
+      .then((hashedPassword) => {
+        const user = new User({
+          email: args.userInput.email,
+          password: hashedPassword,
+        });
+
+        return user.save();
+      })
+      .then((result) => {
+        return { ...result._doc, password: null };
+      })
+      .catch((err) => {
+        throw err;
+      });
+    
+  }
 };
 
 const app = express();
