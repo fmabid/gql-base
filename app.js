@@ -65,13 +65,27 @@ var root = {
       description: args.eventInput.description,
       price: +args.eventInput.price,
       date: new Date(args.eventInput.date),
+      creator: '5f3d432173fb9d3b0edffcc0'
     });
+
+    let createdEvent;
 
     return event
       .save()
       .then((res) => {
-        console.log(res);
-        return { ...res._doc };
+        createdEvent = { ...res._doc }
+
+        return User.findById('5f3d432173fb9d3b0edffcc0')
+      })
+      .then(user => {
+        if (!user) {
+          throw new Error("User doesn't axist");
+        }
+        user.createdEvents.push(event)
+        return user.save()
+      })
+      .then(result => {
+        return createdEvent;
       })
       .catch((err) => {
         console.log(err);
