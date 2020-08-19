@@ -80,10 +80,8 @@ app.use(
 );
 
 
-mongoose.connect(`mongodb+srv://${process.env.MONGO_USER}:${
-  process.env.MONGO_PASSWORD
-}@cluster0-instagram.tcmw7.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`,
- {useNewUrlParser: true})
+// "mongodb+srv://<username>:<password>@<cluster-address>/test?w=majority"
+mongoose.connect(`mongodb://localhost:27017/${process.env.event_db}`)
  .then(() => {
   app.listen(3000)
   console.log('Running a GraphQL API server at http://localhost:3000/graphql');
